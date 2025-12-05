@@ -522,7 +522,8 @@ services:
 ###########################################################################
 ###########################################################################
   gluetun:
-    image: qmcgaw/gluetun:latest
+    image: qmcgaw/gluetun
+    platform: ${PLATFORM}
     container_name: gluetun
     restart: always
     cap_add:
@@ -583,6 +584,7 @@ services:
 ###########################################################################
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
+    platform: ${PLATFORM}
     container_name: bazarr
     restart: unless-stopped
     volumes:
@@ -757,6 +759,7 @@ services:
 ###########################################################################
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
+    platform: ${PLATFORM}
     container_name: flaresolverr
     restart: unless-stopped
     environment:
@@ -941,6 +944,7 @@ services:
 ###########################################################################
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
+    platform: ${PLATFORM}
     container_name: jellyfin
     restart: unless-stopped
 # Add Configurations for GPU Hardware Rendering Here:
@@ -982,6 +986,7 @@ services:
 ###########################################################################
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
+    platform: ${PLATFORM}
     container_name: jellyseerr
     restart: unless-stopped
     networks:
@@ -1091,6 +1096,7 @@ services:
 ###########################################################################
   plex:
     image: lscr.io/linuxserver/plex:latest
+    platform: ${PLATFORM}
     container_name: plex
     restart: unless-stopped
 # Add Configurations for GPU Hardware Rendering Here:
@@ -1133,7 +1139,8 @@ services:
 ###########################################################################
 ###########################################################################
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce
+    platform: ${PLATFORM}
     container_name: portainer
     restart: always
     volumes:
@@ -1168,6 +1175,7 @@ services:
 ###########################################################################
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
+    platform: ${PLATFORM}
     container_name: prowlarr
     restart: unless-stopped
     volumes:
@@ -1204,6 +1212,7 @@ services:
 ###########################################################################
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
+    platform: ${PLATFORM}
     container_name: qbittorrent
     restart: unless-stopped
     depends_on:
@@ -1248,6 +1257,7 @@ services:
 ###########################################################################
   radarr:
     image: lscr.io/linuxserver/radarr:latest
+    platform: ${PLATFORM}
     container_name: radarr
     restart: unless-stopped
     volumes:
@@ -1283,32 +1293,33 @@ services:
 ##
 ###########################################################################
 ###########################################################################
-  readarr:
-    image: lscr.io/linuxserver/readarr:develop
-    container_name: readarr
-    restart: unless-stopped
-    volumes:
-      - ${FOLDER_FOR_MEDIA:?err}:/data
-      - ${FOLDER_FOR_DATA:?err}/readarr:/config
-    environment:
-      - PUID=${PUID:?err}
-      - PGID=${PGID:?err}
-      - TZ=${TIMEZONE:?err}
-      - DOCKER_MODS=ghcr.io/themepark-dev/theme.park:readarr
-      - TP_THEME=${TP_THEME:?err}
-    networks:
-      - mediastack
-    labels:
-      - traefik.enable=true
-    # ROUTERS
-      - traefik.http.routers.readarr.service=readarr
-      - traefik.http.routers.readarr.rule=Host(`readarr.${CLOUDFLARE_DNS_ZONE:?err}`)
-      - traefik.http.routers.readarr.entrypoints=secureweb
-      - traefik.http.routers.readarr.middlewares=authentik-forwardauth@file,security-headers@file,traefik-bouncer@file
-    # SERVICES
-      - traefik.http.services.readarr.loadbalancer.server.scheme=http
-      - traefik.http.services.readarr.loadbalancer.server.port=8787
-    # MIDDLEWARES
+  # readarr:
+  #   image: lscr.io/linuxserver/readarr:develop
+  #   platform: ${PLATFORM}
+  #   container_name: readarr
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ${FOLDER_FOR_MEDIA:?err}:/data
+  #     - ${FOLDER_FOR_DATA:?err}/readarr:/config
+  #   environment:
+  #     - PUID=${PUID:?err}
+  #     - PGID=${PGID:?err}
+  #     - TZ=${TIMEZONE:?err}
+  #     - DOCKER_MODS=ghcr.io/themepark-dev/theme.park:readarr
+  #     - TP_THEME=${TP_THEME:?err}
+  #   networks:
+  #     - mediastack
+  #   labels:
+  #     - traefik.enable=true
+  #   # ROUTERS
+  #     - traefik.http.routers.readarr.service=readarr
+  #     - traefik.http.routers.readarr.rule=Host(`readarr.${CLOUDFLARE_DNS_ZONE:?err}`)
+  #     - traefik.http.routers.readarr.entrypoints=secureweb
+  #     - traefik.http.routers.readarr.middlewares=authentik-forwardauth@file,security-headers@file,traefik-bouncer@file
+  #   # SERVICES
+  #     - traefik.http.services.readarr.loadbalancer.server.scheme=http
+  #     - traefik.http.services.readarr.loadbalancer.server.port=8787
+  #   # MIDDLEWARES
 
 ###########################################################################
 ###########################################################################
@@ -1322,6 +1333,7 @@ services:
 ###########################################################################
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:latest
+    platform: ${PLATFORM}
     container_name: sabnzbd
     restart: unless-stopped
     depends_on:
@@ -1364,6 +1376,7 @@ services:
 ###########################################################################
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
+    platform: ${PLATFORM}
     container_name: sonarr
     restart: unless-stopped
     volumes:
@@ -1468,6 +1481,7 @@ services:
 ###########################################################################
   unpackerr:
     image: golift/unpackerr
+    platform: ${PLATFORM}
     container_name: unpackerr
     restart: unless-stopped
     user: ${PUID:?err}:${PGID:?err}
@@ -1611,39 +1625,3 @@ services:
       - UN_CMDHOOK_0_EXCLUDE_0=readarr
       - UN_CMDHOOK_0_EXCLUDE_1=lidarr
       - UN_CMDHOOK_0_TIMEOUT=10s
-
-###########################################################################
-###########################################################################
-##
-##  Docker Compose File: Whisparr (Hotio.Dev)
-##  Function: Adult Media Library Manager
-##
-##  Documentation: https://wiki.servarr.com/whisparr
-##
-###########################################################################
-###########################################################################
-  whisparr:
-    image: hotio/whisparr:nightly
-    container_name: whisparr
-    restart: unless-stopped
-    volumes:
-      - ${FOLDER_FOR_MEDIA:?err}:/data
-      - ${FOLDER_FOR_DATA:?err}/whisparr:/config
-    environment:
-      - PUID=${PUID:?err}
-      - PGID=${PGID:?err}
-      - UMASK=${UMASK:?err}
-      - TZ=${TIMEZONE:?err}
-    networks:
-      - mediastack
-    labels:
-      - traefik.enable=true
-    # ROUTERS
-      - traefik.http.routers.whisparr.service=whisparr
-      - traefik.http.routers.whisparr.rule=Host(`whisparr.${CLOUDFLARE_DNS_ZONE:?err}`)
-      - traefik.http.routers.whisparr.entrypoints=secureweb
-      - traefik.http.routers.whisparr.middlewares=authentik-forwardauth@file,security-headers@file,traefik-bouncer@file
-    # SERVICES
-      - traefik.http.services.whisparr.loadbalancer.server.scheme=http
-      - traefik.http.services.whisparr.loadbalancer.server.port=6969
-    # MIDDLEWARES
