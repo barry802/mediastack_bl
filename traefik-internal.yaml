@@ -3,53 +3,55 @@
 #
 # Filename: internal.yaml        Traefik Internal Web Services Configuration File
 #
-# Replace all "example.com" values with your domain name
+# Replace all "barryliv.com" values with your domain name
 #
-#  i.e.   - main: example.com
+#  i.e.   - main: barryliv.com
 #           sans:
-#             - "*.example.com"
+#             - "*.barryliv.com"
 #
 #########################################################################
 #########################################################################
 
 http:
   routers:
-    synology:                                # Synology DSM
-      rule: "Host(`synology.example.com`)"
+    synology:
+      # Synology DSM
+      rule: "Host(`synology.barryliv.com`)"
       service: synology
       entryPoints:
-        - secureweb
+      - secureweb
       tls:
         certResolver: letsencrypt
       middlewares:
-        - authentik-forwardauth@file
-        - security-headers@file
-        - traefik-bouncer@file
+      - authentik-forwardauth@file
+      - security-headers@file
+      - traefik-bouncer@file
 
-    gateway:                                 # Ubiquiti Dream Machine
-      rule: "Host(`gateway.example.com`)"
+    gateway:
+      # Ubiquiti Dream Machine
+      rule: "Host(`gateway.barryliv.com`)"
       service: gateway
       entryPoints:
-        - secureweb
+      - secureweb
       tls:
         certResolver: letsencrypt
       middlewares:
-        - authentik-forwardauth@file
-        - security-headers@file
-        - traefik-bouncer@file
+      - authentik-forwardauth@file
+      - security-headers@file
+      - traefik-bouncer@file
 
   services:
     synology:
       loadBalancer:
         servers:
-          - url: "https://192.168.1.8:5001"   # Synology Web UI - HTTP (Insecure)
+        - url: "https://192.168.1.8:5001" # Synology Web UI - HTTP (Insecure)
         passHostHeader: true
-        serversTransport: insecure-no-verify          
+        serversTransport: insecure-no-verify
 
     gateway:
       loadBalancer:
         servers:
-          - url: "https://192.168.1.1"        # Ubiquiti Web UI - HTTPS
+        - url: "https://192.168.1.1" # Ubiquiti Web UI - HTTPS
         passHostHeader: true
         serversTransport: insecure-no-verify
 

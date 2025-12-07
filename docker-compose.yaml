@@ -242,37 +242,36 @@ services:
 ##
 ###########################################################################
 ###########################################################################
-#  traefik:
-#    image: traefik:latest
-#    container_name: traefik
-#    restart: unless-stopped
-#    networks:
-#      - mediastack
-#    user: root
-#    environment:
-#      - TZ=${TIMEZONE:?err}
-#      - CF_DNS_API_TOKEN=${CLOUDFLARE_DNS_API_TOKEN:?err}
-#    ports:
-#      - ${REVERSE_PROXY_PORT_HTTP:?err}:80
-#      - ${REVERSE_PROXY_PORT_HTTPS:?err}:443
-#      - ${WEBUI_PORT_TRAEFIK:?err}:8080
-#      - ${METRICS_PORT_TRAEFIK:?err}:8082
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock:ro
-#      - ${FOLDER_FOR_DATA:?err}/logs/traefik:/var/log
-#      - ${FOLDER_FOR_DATA:?err}/traefik:/etc/traefik
-#      - ${FOLDER_FOR_DATA:?err}/traefik/letsencrypt:/letsencrypt
-#    labels:
-#      - traefik.enable=true
-#    # ROUTERS
-#      - traefik.http.routers.traefik.service=api@internal
-#      - traefik.http.routers.traefik.rule=Host(`traefik.${CLOUDFLARE_DNS_ZONE:?err}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
-#      - traefik.http.routers.traefik.entrypoints=secureweb
-#      - traefik.http.routers.traefik.middlewares=authentik-forwardauth@file,security-headers@file,traefik-bouncer@file
-#    # SERVICES
-#      - traefik.http.services.traefik.loadbalancer.server.scheme=http
-#      - traefik.http.services.traefik.loadbalancer.server.port=8080
-#    # MIDDLEWARES
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: unless-stopped
+    networks:
+      - mediastack
+    user: root
+    environment:
+      - TZ=${TIMEZONE:?err}
+      - CF_DNS_API_TOKEN=${CLOUDFLARE_DNS_API_TOKEN:?err}
+    ports:
+      #- ${REVERSE_PROXY_PORT_HTTP:?err}:80
+      #- ${REVERSE_PROXY_PORT_HTTPS:?err}:443
+      - ${WEBUI_PORT_TRAEFIK:?err}:8080
+      - ${METRICS_PORT_TRAEFIK:?err}:8082
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${FOLDER_FOR_DATA:?err}/logs/traefik:/var/log
+      - ${FOLDER_FOR_DATA:?err}/traefik:/etc/traefik
+      - ${FOLDER_FOR_DATA}/traefik/letsencrypt/acme.json:/letsencrypt/acme.json
+    labels:
+      - traefik.enable=true
+    # ROUTERS
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.rule=Host(`traefik.${CLOUDFLARE_DNS_ZONE:?err}`)
+      - traefik.http.routers.traefik.entrypoints=web
+    # SERVICES
+      - traefik.http.services.traefik.loadbalancer.server.scheme=http
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
+    # MIDDLEWARES
 
 ###########################################################################
 ###########################################################################
@@ -284,23 +283,23 @@ services:
 ##
 ###########################################################################
 ###########################################################################
-#  traefik-certs-dumper:
-#    image: ldez/traefik-certs-dumper:latest
-#    container_name: traefik-certs-dumper
-#    restart: always
-#    networks:
-#      - mediastack
-#    user: ${PUID:?err}:${PGID:?err}
-#    entrypoint: sh -c '
-#      while ! [ -e /data/acme.json ]
-#      || ! [ `jq ".[] | .Certificates | length" /data/acme.json | jq -s "add" ` != 0 ]; do
-#      sleep 1
-#      ; done
-#      && traefik-certs-dumper file --version v2 --watch
-#      --source /data/acme.json --dest /certs'
-#    volumes:
-#      - ${FOLDER_FOR_DATA:?err}/traefik/letsencrypt:/data:ro
-#      - ${FOLDER_FOR_DATA:?err}/traefik-certs-dumper:/certs
+  traefik-certs-dumper:
+    image: ldez/traefik-certs-dumper:latest
+    container_name: traefik-certs-dumper
+    restart: always
+    networks:
+      - mediastack
+    user: ${PUID:?err}:${PGID:?err}
+    entrypoint: sh -c '
+      while ! [ -e /data/acme.json ]
+      || ! [ `jq ".[] | .Certificates | length" /data/acme.json | jq -s "add" ` != 0 ]; do
+      sleep 1
+      ; done
+      && traefik-certs-dumper file --version v2 --watch
+      --source /data/acme.json --dest /certs'
+    volumes:
+      - ${FOLDER_FOR_DATA:?err}/traefik/letsencrypt:/data:ro
+      - ${FOLDER_FOR_DATA:?err}/traefik-certs-dumper:/certs
 
 ###########################################################################
 ###########################################################################
@@ -312,25 +311,25 @@ services:
 ##
 ###########################################################################
 ###########################################################################
-#  crowdsec:
-#    image: crowdsecurity/crowdsec:latest
-#    container_name: crowdsec
-#    restart: always
-#    networks:
-#      - mediastack
-#    user: ${PUID:?err}:${PGID:?err}
-#    environment:
-#      - TZ=${TIMEZONE:?err}
-#    ports:
-#      - 127.0.0.1:${CROWDSEC_PORT:?err}:8080
-#      - 6060:6060        # Provides Metrics for Prometheus
-#      - 7422:7422        # Provides WAF AppSec
-#    depends_on:
-#      - traefik
-#    volumes:
-#      - ${FOLDER_FOR_DATA:?err}/crowdsec:/etc/crowdsec
-#      - ${FOLDER_FOR_DATA:?err}/crowdsec/data:/var/lib/crowdsec/data/
-#      - ${FOLDER_FOR_DATA:?err}/logs:/logs:ro
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: always
+    networks:
+      - mediastack
+    user: ${PUID:?err}:${PGID:?err}
+    environment:
+      - TZ=${TIMEZONE:?err}
+    ports:
+      - 127.0.0.1:${CROWDSEC_PORT:?err}:8080
+      - 6060:6060        # Provides Metrics for Prometheus
+      - 7422:7422        # Provides WAF AppSec
+    depends_on:
+      - traefik
+    volumes:
+      - ${FOLDER_FOR_DATA:?err}/crowdsec:/etc/crowdsec
+      - ${FOLDER_FOR_DATA:?err}/crowdsec/data:/var/lib/crowdsec/data/
+      - ${FOLDER_FOR_DATA:?err}/logs:/logs:ro
 
 ###########################################################################
 ###########################################################################
@@ -967,8 +966,8 @@ services:
     # ROUTERS
       - traefik.http.routers.jellyfin.service=jellyfin
       - traefik.http.routers.jellyfin.rule=Host(`jellyfin.${CLOUDFLARE_DNS_ZONE:?err}`)
-      - traefik.http.routers.jellyfin.entrypoints=secureweb
-      - traefik.http.routers.jellyfin.middlewares=authentik-forwardauth@file,security-headers@file,traefik-bouncer@file
+      - traefik.http.routers.jellyfin.entrypoints=web
+      #- traefik.http.routers.jellyfin.middlewares=authentik-forwardauth@file,security-headers@file,traefik-bouncer@file
     # SERVICES
       - traefik.http.services.jellyfin.loadbalancer.server.scheme=http
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
@@ -981,11 +980,11 @@ services:
 ##  Function: Media Request Manager
 ##
 ##  Documentation: https://hub.docker.com/r/fallenbagel/jellyseerr
-##
+##  UPDATE: https://www.reddit.com/r/selfhosted/comments/1o3f1tc/awesome_news_jellyseeroverseer/
 ###########################################################################
 ###########################################################################
   jellyseerr:
-    image: fallenbagel/jellyseerr:latest
+    image: fallenbagel/jellyseerr:preview-seerr
     platform: ${PLATFORM}
     container_name: jellyseerr
     restart: unless-stopped
@@ -1625,3 +1624,55 @@ services:
       - UN_CMDHOOK_0_EXCLUDE_0=readarr
       - UN_CMDHOOK_0_EXCLUDE_1=lidarr
       - UN_CMDHOOK_0_TIMEOUT=10s
+
+###########################################################################
+###########################################################################
+##  Docker Compose File: Cloudflared (Cloudflare)
+##  Function: Cloudflare Tunnel Client as Dodo has blocked direct access to home IPs
+##  Documentation: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/docker/
+#############################################################################
+#############################################################################
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    networks:
+      - mediastack # Important: Put it on the same network as Traefik!
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:?err}
+    command: tunnel --no-autoupdate run
+
+###########################################################################
+###########################################################################
+##  Docker Compose File: Mealie (Mealie Recipes)
+##  Function: Personal Recipe Manager and Meal Planner
+##  Documentation: https://mealie.io/docs/installation/docker
+#############################################################################
+#############################################################################
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:latest
+    container_name: mealie
+    hostname: mealie
+    restart: unless-stopped
+    # Use your defined PUID/PGID and TZ environment variables
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      # Required Mealie settings:
+      - WEB_CONCURRENCY=4  # Recommended setting for performance
+      - ALLOW_SIGNUP=true  # Set to false after initial admin setup
+      - BASE_URL=https://mealie.${DOMAINNAME}
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      # Application data and configuration (inside /data/config)
+      - ${FOLDER_FOR_DATA}/mealie:/app/data
+      # Mealie uses the default 80 port internally
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mealie.entrypoints=secureweb
+      - traefik.http.routers.mealie.rule=Host(`mealie.${DOMAINNAME}`)
+      - traefik.http.routers.mealie.tls=true
+      - traefik.http.routers.mealie.service=mealie
+      - traefik.http.services.mealie.loadbalancer.server.port=80

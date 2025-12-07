@@ -3,11 +3,11 @@
 #
 # Filename: traefik.yaml        Traefik Static Configuration File
 #
-# Replace all "example.com" values with your domain name
+# Replace all "barryliv.com" values with your domain name
 #
-#  i.e.   - main: example.com
+#  i.e.   - main: barryliv.com
 #           sans:
-#             - "*.example.com"
+#             - "*.barryliv.com"
 #
 #########################################################################
 #########################################################################
@@ -17,7 +17,7 @@ global:
   sendAnonymousUsage: true
 
 log:
-  level: INFO    # Options are:  TRACE , DEBUG , INFO , WARN , ERROR , FATAL , and PANIC
+  level: INFO # Options are:  TRACE , DEBUG , INFO , WARN , ERROR , FATAL , and PANIC
 
 accessLog:
   filePath: /var/log/access.log
@@ -31,11 +31,14 @@ entryPoints:
   web:
     address: :80
     http:
-      redirections:
-        entryPoint:
-          to: secureweb
-          scheme: https
-          permanent: true
+      # === CRITICAL FIX: COMMENT OUT THIS BLOCK ===
+      # http:
+      #   redirections:
+      #     entryPoint:
+      #       to: secureweb
+      #       scheme: https
+      #       permanent: true
+      # ============================================
   secureweb:
     address: :443
     http:
@@ -43,9 +46,11 @@ entryPoints:
         options: default
         certResolver: letsencrypt
         domains:
-          - main: example.com
-            sans:
-              - "*.example.com"
+        - main: barryliv.com
+          sans:
+          - "*.barryliv.com"
+    forwardedHeaders:
+      insecure: true
   metrics:
     address: :8082
 
@@ -56,10 +61,10 @@ metrics:
     headerLabels:
       useragent: User-Agent
     buckets:
-      - 0.1
-      - 0.3
-      - 1.2
-      - 5.0
+    - 0.1
+    - 0.3
+    - 1.2
+    - 5.0
 
 providers:
   docker:
@@ -77,8 +82,8 @@ certificatesResolvers:
       dnsChallenge:
         provider: cloudflare
         resolvers:
-          - 1.1.1.1:53
-          - 1.0.0.1:53
+        - 1.1.1.1:53
+        - 1.0.0.1:53
         propagation:
           delayBeforeChecks: 2s
 
